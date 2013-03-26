@@ -1,11 +1,16 @@
-#include <stdio.h>
+/*****************************************
+ * TODO: rename variables to more logical names
+ * TODO: Make Huffman class and move all functions
+ *       into it
+ * TODO: for speed optimization
+ * TODO: Insert profiling out where specifed by teacher
+ * TODO: make output file dynamic
+ * *****************************************/
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <cstdlib>
 #include <vector>
-#include <iomanip>
-#include <map>
 #include <algorithm>
 #include <queue>
 #include <functional>
@@ -14,15 +19,19 @@
 #include <cstdio>
 
 using namespace std;
-
-
-//frequency table for each character
-//map<char, int> char_freq;
+/**************************************
+ * frequency table for each character
+ * and for our key
+ * I found that using simple arrays was
+ * much faster than unordered hash.....
+ * Need to test tree traversal
+ * ************************************/
 unsigned long char_freq[256] = {0};
 //Huffman key
-//map<char, string> huff_key;
 string huff_key[256];
+class Huffman{
 
+};
 class Node {
   public:
     int freq;
@@ -69,20 +78,31 @@ struct CompareNode : public binary_function<Node*, Node*, bool>{
     return l->freq > r->freq;
   }
 };
-
+/************************************************************
+ * build a tree we can travers through in order to create our
+ * huffman codes
+ * ***********************************************************/
 Node *build_tree(){
-  priority_queue<Node*, vector<Node*>, CompareNode> tree;//a priority tree to hold out nodes in
-  for(int i = 0; i < 256; ++i){ //Create Nodes for each char
-    if(char_freq[i]) tree.push(new LeafNode(char_freq[i], (char)i));
+  /***********************************************************
+   * Using a Priority_Queue to hold the nodes so I don't
+   * have to sort them
+   * *******************************************************/
+  //a priority tree to hold out nodes in
+  priority_queue<Node*, vector<Node*>, CompareNode> nodes;
+  // for each char insert a new leaf node using the global char_freq array
+  for(int i = 0; i < 256; ++i){
+    if(char_freq[i]) nodes.push(new LeafNode(char_freq[i], (char)i));
   }
-  while(tree.size()>1){
-    Node *n1 = tree.top();
-    tree.pop();
-    Node *n2 = tree.top();
-    tree.pop();
-    tree.push(new InnerNode(n1,n2));
+  //combine the two smallest leafNodes into an InnerNode until there is only one node remaining
+  while(nodes.size()>1){
+    Node *n1 = nodes.top();
+    nodes.pop();
+    Node *n2 = nodes.top();
+    nodes.pop();
+    nodes.push(new InnerNode(n1,n2));
   }
-  return tree.top();
+  //return the remaining inner node to be the parent node
+  return nodes.top();
 }
 void generate_key(Node* root, string bs){
   /******************************************************************
@@ -100,6 +120,11 @@ void generate_key(Node* root, string bs){
     generate_key(in->right, bsr);
   }
 }
+/****************************************
+ * TODO: rename this function
+ * generates the key for the output
+ * zip301 file
+ * *************************************/
 string print_huff_key(){
   string hk;
   for(int i = 0; i < 256; ++i){
@@ -116,12 +141,19 @@ string print_huff_key(){
   hk += "*****\n";
   return hk;
 }
+/********************************
+ * build and array of character
+ * Frequencies
+ * *******************************/
 void build_frequency_table(string &content){
   for(char c: content){
     char_freq[(int)c]++;
   }
 }
-
+/**********************************
+ * take string and encode it as a
+ * binary string of 0s and 1s
+ * ********************************/
 string encode_string(string &content){
     string bs;//binary string
     for(char c: content){
@@ -129,7 +161,9 @@ string encode_string(string &content){
     }
     return bs;
 }
-
+/*************************************
+ * Write key and encoded data to file
+ * **********************************/
 void huffman_binary(string &bs){
     ofstream os;
     os.open("test.zip301", ios::out|ios::binary);
@@ -148,6 +182,7 @@ void huffman_binary(string &bs){
 }
 
 int main(int argc, char *argv[]){
+  //start a clock for poor mans profiling
   clock_t start = clock();
   //print out an error if there no file is provided
   if (argc <= 1) {
