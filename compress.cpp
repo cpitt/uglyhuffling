@@ -29,9 +29,6 @@ using namespace std;
 unsigned long char_freq[256] = {0};
 //Huffman key
 string huff_key[256];
-class Huffman{
-
-};
 class Node {
   public:
     int freq;
