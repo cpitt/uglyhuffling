@@ -121,13 +121,13 @@ class Huffman{
       return hk;
     }
      // build and array of character Frequencies char_freq
-    void build_frequency_table(string content){
+    void build_frequency_table(string const& content){
       for(char c: content){
         char_freq[(int)c]++;
       }
     }
      // Encodes input string as binary string of 0s and 1s
-    string to_binary_string(string content){
+    string to_binary_string(string const& content){
         string bs;//binary string
         for(char c: content){
             bs += huff_key[c];
@@ -136,7 +136,7 @@ class Huffman{
         return bs;
     }
      // Takes binary string and converts it into unsigned char vector of bytes
-     void generate_bytes(string binary_string){
+     void generate_bytes(string& binary_string){
         if (int buffer = binary_string.length() % 8) {
             binary_string.append(buffer,'0');
         }
@@ -146,7 +146,7 @@ class Huffman{
     }
     // save compressed file in zip301 format with print_huff_key followed
     // by the compressed bytes
-    void save_zip301(vector<unsigned char> bytes, string out_name){
+    void save_zip301(vector<unsigned char> const& bytes, string const& out_name){
         ofstream os;
         os.open("test.zip301", ios::out|ios::binary);
         string key = print_huff_key();
@@ -155,7 +155,7 @@ class Huffman{
         os.close();
     }
     //compress the input file into the zip301 format
-    void compress_zip301(string to_encode, string out_filename){
+    void compress_zip301(string const& to_encode, string out_filename){
       build_frequency_table(to_encode);
       build_huffman_tree();
       generate_key(huffman_tree, "");
