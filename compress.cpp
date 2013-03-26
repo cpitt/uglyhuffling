@@ -64,7 +64,7 @@ class Huffman{
     string huff_key[256];
     Node* huffman_tree = NULL;
     //a reference to the string representation of the data to be compressed
-    int binary_string_length;
+    int binary_string_size;
     string binary_string;
     vector<unsigned char> bytes;
   public:
@@ -117,7 +117,9 @@ class Huffman{
           hk += "\n";
         }
       }
-      hk += "*****\n" + this->binary_string_length + '\n';
+      hk += "*****\n";
+      hk +=  to_string(binary_string_size);
+      hk += '\n';
       return hk;
     }
      // build and array of character Frequencies char_freq
@@ -132,7 +134,6 @@ class Huffman{
         for(char c: content){
             bs += huff_key[c];
         }
-        binary_string_length = bs.length();
         return bs;
     }
      // Takes binary string and converts it into unsigned char vector of bytes
@@ -148,7 +149,7 @@ class Huffman{
     // by the compressed bytes
     void save_zip301(vector<unsigned char> const& bytes, string const& out_name){
         ofstream os;
-        os.open("test.zip301", ios::out|ios::binary);
+        os.open(out_name, ios::out|ios::binary);
         string key = print_huff_key();
         os << key;
         os.write((const char*)&bytes[0], bytes.size());
@@ -159,9 +160,10 @@ class Huffman{
       build_frequency_table(to_encode);
       build_huffman_tree();
       generate_key(huffman_tree, "");
-      string encoded_binary_string = to_binary_string(to_encode);
-      generate_bytes(encoded_binary_string);
-      save_zip301(bytes, "test.zip301");
+      binary_string = to_binary_string(to_encode);
+      binary_string_size = binary_string.size();
+      generate_bytes(binary_string);
+      save_zip301(bytes, out_filename);
     }
 };
 
@@ -187,7 +189,7 @@ int main(int argc, char *argv[]){
   Huffman* h = new Huffman();
   //determine our output file name
   string temp = in_filename;
-  int pos = temp.find('a');
+  int pos = temp.find('.');
   string out_filename =  temp.substr(0, pos) + ".zip301";
   //compress and save out file
   h->compress_zip301(file_content, out_filename);
