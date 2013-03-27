@@ -1,10 +1,6 @@
 /*****************************************
- * TODO: rename variables to more logical names
- * TODO: Make Huffman class and move all functions
- *       into it
  * TODO: for speed optimization
  * TODO: Insert profiling out where specifed by teacher
- * TODO: make output file dynamic
  * *****************************************/
 #include <iostream>
 #include <string>
