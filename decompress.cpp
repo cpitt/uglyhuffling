@@ -11,12 +11,12 @@
 #include <functional>
 #include <bitset>
 #include <time.h>
-#include <unordered_map>
 #include <cstdio>
 #include <stdexcept>
 
 using namespace std;
-class Tree{
+//Decompresses zip301 huffman files
+class Zip301Decompressor{
   private:
     struct TreeNode{
         TreeNode* t[2] {NULL};
@@ -25,10 +25,11 @@ class Tree{
     };
     TreeNode* root;
   public:
-    Tree(){
+    Zip301Decompressor(){
       root = new TreeNode;
     }
-    void insert(string bs, char c, TreeNode* r){
+    //add char into tree placed according to binary string
+    void add_to_key(string bs, char c, TreeNode* r){
       TreeNode* n =new TreeNode;
       int lr = bs[0] == '0' ? 0 : 1;
       if(r->t[lr] == NULL) r->t[lr] = n;
@@ -37,12 +38,14 @@ class Tree{
         r->t[lr]->leaf = true;
         return;
       }
-      insert(bs.substr(1), c, r->t[lr]);
+      add_to_key(bs.substr(1), c, r->t[lr]);
     }
-    void insert(string bs,char c){
-      insert(bs, c,  this->root);
+    void add_to_key(string bs, char c){
+      add_to_key(bs, c,  this->root);
     }
-    string decode(string bs){
+
+    //Decode binary_string to original
+    string decode(string const& bs){
       string out;
       TreeNode* temp = root;
       for(int i = 0; i < bs.length(); ++i){
@@ -56,31 +59,8 @@ class Tree{
       }
       return out;
     }
-    void print(TreeNode* n){
-      cout << "Node: " << n->c << "; ";
-      cout << " L: ";
-      if(!n->t[0]) cout << "null; ";
-      else cout << n->t[0]->c << "; ";
-      cout << "R: ";
-      if(!n->t[1]) cout << "null " << endl;
-      else cout << n->t[1]->c << " " << endl;
-      //recurse
-      if(n->t[0]) print(n->t[0]);
-      if(n->t[1]) print(n->t[1]);
-
-     }
-
-    void print(){
-      if(!this->root){
-        cout << "tree is empty can not print";
-      }else{
-        print(this->root);
-      }
-    }
 };
 
-//Huffman key
-Tree huff_key;
 
 int main(int argc, char *argv[]){
   clock_t start = clock();
@@ -91,17 +71,20 @@ int main(int argc, char *argv[]){
   }
   //Open file
   char* file_name = argv[1];
-  ifstream ifs (file_name);
+  ifstream ifs (file_name, ios::in | ios::binary);
   //print error if file is not found
   if(!ifs.good()){
     cout<< "File " << argv[1] << " not found" << endl;
     exit(1);
   }
+  //Huffman key
+  Zip301Decompressor decompressor;
   //if the file is good load the whole thing into a string called content
   string line;
   string code;
   int key;
-  while(getline(ifs, line)){
+  // Read the zip 301 from file and add to Zip301Decompressor's key
+  while(getline(ifs, line)) {
       if(line[0] == '*') break;
       line.pop_back();
       unsigned pos = line.find(" ");
@@ -112,22 +95,28 @@ int main(int argc, char *argv[]){
       else if(line == "tab") key = 9;
       else if(line == "return") key =13;
       else key = line[0];
-      huff_key.insert(code, key);
+      decompressor.add_to_key(code, key);
       //cout << code<< " " << line << endl;
   }
+  //Retrieve the bit length at the end of the zip301 key
   getline(ifs, line);
   long binary_length = stol(line);
   //get the rest of the file
-  string encoded_data( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>()    ) );
-  ifs.close();//close our file
+  string encoded_data( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>() ) );
+  ifs.close();
   //build a binary string
   string binary_string;
   for(int i = 0; i < encoded_data.length(); ++i){
       binary_string += bitset<8>(encoded_data[i]).to_string();
   }
-  string decoded =  huff_key.decode(binary_string.substr(0, binary_length)) ;
+  //decode the binary_string
+  string decoded =  decompressor.decode(binary_string.substr(0, binary_length)) ;
+  //determine output filename
+  string out_file_name = file_name;
+  out_file_name = out_file_name.substr(0, out_file_name.find('.')) + "2.txt";
+  //save to file
   ofstream os;
-  os.open("test.txt");
+  os.open(out_file_name);
   os << decoded;
   os.close();
   clock_t end = clock();
