@@ -114,12 +114,12 @@ class Huffman{
           else if (i == 32) hk += "space";
           else if (i == 9) hk += "tab";
           else hk += i;
-          hk += "\n";
+          hk += "\r\n";
         }
       }
-      hk += "*****\n";
+      hk += "*****\r\n";
       hk +=  to_string(binary_string_size);
-      hk += '\n';
+      hk += "\r\n";
       return hk;
     }
      // build and array of character Frequencies char_freq
@@ -130,40 +130,40 @@ class Huffman{
     }
      // Encodes input string as binary string of 0s and 1s
     string to_binary_string(string const& content){
-        string bs;//binary string
-        for(char c: content){
-            bs += huff_key[c];
-        }
-        return bs;
+       string bs;//binary string
+       for(char c: content){
+           bs += huff_key[c];
+       }
+       return bs;
     }
      // Takes binary string and converts it into unsigned char vector of bytes
      void generate_bytes(string& binary_string){
-        if (int buffer = binary_string.length() % 8) {
-            binary_string.append(buffer,'0');
-        }
-        for (int i = 0; i < binary_string.size(); i+=8) {
-          bytes.push_back((char) stol(binary_string.substr(i,8), nullptr,2));
-        }
-    }
+       //add a buffer of zeros to end of binary string to make it an even number
+       //of bytes
+       if (int buffer = binary_string_size % 8) {
+            binary_string.append(8-buffer,'0');
+       }
+       for (int i = 0; i < binary_string.size(); i+=8) {
+          bytes.push_back((unsigned char) stol(binary_string.substr(i,8), nullptr,2));
+       }
+  }
     // save compressed file in zip301 format with print_huff_key followed
     // by the compressed bytes
     void save_zip301(vector<unsigned char> const& bytes, string const& out_name){
         ofstream os;
         os.open(out_name, ios::out|ios::binary);
-        string key = print_huff_key();
-        os << key;
+        os << print_huff_key();
         os.write((const char*)&bytes[0], bytes.size());
         os.close();
     }
     //compress the input file into the zip301 format
     void compress_zip301(string const& to_encode, string out_filename){
-      build_frequency_table(to_encode);
-      build_huffman_tree();
-      generate_key(huffman_tree, "");
-      binary_string = to_binary_string(to_encode);
-      binary_string_size = binary_string.size();
-      generate_bytes(binary_string);
-      save_zip301(bytes, out_filename);
+       build_frequency_table(to_encode);
+       build_huffman_tree();
+       generate_key(huffman_tree, "");
+       binary_string = to_binary_string(to_encode);
+       binary_string_size = binary_string.size(); generate_bytes(binary_string);
+       save_zip301(bytes, out_filename);
     }
 };
 
