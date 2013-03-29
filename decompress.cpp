@@ -22,7 +22,7 @@ class Zip301Decompressor{
       TreeNode* t[2];
       char c;
       bool leaf;
-      TreeNode(): t{NULL}, leaf(false){}
+      TreeNode(): t(), leaf(false){}
     };
     TreeNode* root;
   public:
