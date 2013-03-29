@@ -51,7 +51,7 @@ class Zip301Decompressor{
       TreeNode* temp = root;
       for(char c: bs){
         int lr = c == '0' ? 0 : 1;
-        if(temp->t[lr][lr]->leaf){
+        if(temp->t[lr]->leaf){
           out += temp->t[lr]->c;
           temp = this->root;
         }else{
