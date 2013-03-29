@@ -1,7 +1,3 @@
-/*****************************************
- * TODO: for speed optimization
- * TODO: Insert profiling out where specifed by teacher
- * *****************************************/
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -20,10 +16,8 @@ using namespace std;
 class Node {
   public:
     // frequency of char or sum of two chars frequency if InnerNode
-     int freq;
-    Node(int freq){
-      this->freq = freq;
-    }
+    int freq;
+    Node(int f): freq(f){}
     virtual void print() {};
     // You can't compare pointers so this struct is put in place to overide the compare operator.
     // http://stackoverflow.com/questions/1541560/stl-priority-queue-on-custom-class
@@ -37,17 +31,12 @@ class InnerNode : public Node{
   public:
     Node* left;
     Node* right;
-    InnerNode(Node* l, Node* r) : Node(r->freq + l->freq){
-      this->left = l;
-      this->right = r;
-    }
+    InnerNode(Node* l, Node* r) : Node(r->freq + l->freq), left(l), right(r){}
 };
 class LeafNode : public Node{
   public:
     char c;
-    LeafNode(int freq, char c) : Node(freq){
-      this->c = c;
-    }
+    LeafNode(int freq, char _c) : Node(freq), c(_c){}
 };
 
 // Compresses a string using the Huffman Algorithm and saves it to a zip301 file
@@ -55,16 +44,16 @@ class Huffman{
   private:
      // frequency table for each character and it's frequency. I found
      // that using simple arrays was much faster than unordered hash
-    unsigned long char_freq[256] = {0};
+    unsigned long char_freq[256];
     //Huffman key
     string huff_key[256];
-    Node* huffman_tree = NULL;
+    Node* huffman_tree;
     //a reference to the string representation of the data to be compressed
     int binary_string_size;
     string binary_string;
     vector<unsigned char> bytes;
   public:
-    Huffman() {}
+    Huffman() : char_freq(), huffman_tree(NULL){}
     // build a tree we can traverse through in order to create our
     // huffman codes
     void build_huffman_tree(){
@@ -87,8 +76,8 @@ class Huffman{
     }
     //Recursive algorithm that builds the huff_key array
     void generate_key(Node* root, string bs){
-       // check if child class type is either leaf or inner node.
-       // http://stackoverflow.com/questions/4589226/type-checking-in-c
+      // check if child class type is either leaf or inner node.
+      // http://stackoverflow.com/questions/4589226/type-checking-in-c
       if(LeafNode* ln = dynamic_cast<LeafNode*>(root)){
         huff_key[ln->c] = bs;
       }else if(InnerNode* in = dynamic_cast<InnerNode*>(root)){
@@ -126,40 +115,40 @@ class Huffman{
     }
      // Encodes input string as binary string of 0s and 1s
     string to_binary_string(string const& content){
-       string bs;//binary string
-       for(char c: content){
-           bs += huff_key[c];
-       }
+      string bs;//binary string
+      for(char c: content){
+        bs += huff_key[c];
+      }
        return bs;
     }
      // Takes binary string and converts it into unsigned char vector of bytes
-     void generate_bytes(string& binary_string){
-       //add a buffer of zeros to end of binary string to make it an even number
-       //of bytes
-       if (int buffer = binary_string_size % 8) {
-            binary_string.append(8-buffer,'0');
-       }
-       for (int i = 0; i < binary_string.size(); i+=8) {
-          bytes.push_back((unsigned char) stol(binary_string.substr(i,8), nullptr,2));
-       }
-  }
+    void generate_bytes(string& binary_string){
+      //add a buffer of zeros to end of binary string to make it an even number
+      //of bytes
+      if (int buffer = binary_string_size % 8) {
+        binary_string.append(8-buffer,'0');
+      }
+      for (int i = 0; i < binary_string.size(); i+=8) {
+        bytes.push_back((unsigned char) stol(binary_string.substr(i,8), nullptr,2));
+      }
+    }
     // save compressed file in zip301 format with print_huff_key followed
     // by the compressed bytes
     void save_zip301(vector<unsigned char> const& bytes, string const& out_name){
-        ofstream os;
-        os.open(out_name, ios::out|ios::binary);
-        os << print_huff_key();
-        os.write((const char*)&bytes[0], bytes.size());
-        os.close();
+      ofstream os;
+      os.open(out_name, ios::out|ios::binary);
+      os << print_huff_key();
+      os.write((const char*)&bytes[0], bytes.size());
+      os.close();
     }
     //compress the input file into the zip301 format
     void compress_zip301(string const& to_encode, string out_filename){
-       build_frequency_table(to_encode);
-       build_huffman_tree();
-       generate_key(huffman_tree, "");
-       binary_string = to_binary_string(to_encode);
-       binary_string_size = binary_string.size(); generate_bytes(binary_string);
-       save_zip301(bytes, out_filename);
+      build_frequency_table(to_encode);
+      build_huffman_tree();
+      generate_key(huffman_tree, "");
+      binary_string = to_binary_string(to_encode);
+      binary_string_size = binary_string.size(); generate_bytes(binary_string);
+      save_zip301(bytes, out_filename);
     }
 };
 

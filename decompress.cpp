@@ -19,9 +19,10 @@ using namespace std;
 class Zip301Decompressor{
   private:
     struct TreeNode{
-        TreeNode* t[2] {NULL};
-        char c;
-        bool leaf = false;
+      TreeNode* t[2];
+      char c;
+      bool leaf;
+      TreeNode(): t{NULL}, leaf(false){}
     };
     TreeNode* root;
   public:
@@ -41,21 +42,21 @@ class Zip301Decompressor{
       add_to_key(bs.substr(1), c, r->t[lr]);
     }
     void add_to_key(string bs, char c){
-      add_to_key(bs, c,  this->root);
+      add_to_key(bs, c, this->root);
     }
 
     //Decode binary_string to original
     string decode(string const& bs){
       string out;
       TreeNode* temp = root;
-      for(int i = 0; i < bs.length(); ++i){
-          int lr = bs[i] == '0' ? 0 : 1;
-          if(temp->t[lr]->leaf){
-            out += temp->t[lr]->c;
-            temp = this->root;
-          }else{
-            temp = temp->t[lr];
-          }
+      for(char c: bs){
+        int lr = c == '0' ? 0 : 1;
+        if(temp->t[lr][lr]->leaf){
+          out += temp->t[lr]->c;
+          temp = this->root;
+        }else{
+          temp = temp->t[lr];
+        }
       }
       return out;
     }
@@ -85,18 +86,18 @@ int main(int argc, char *argv[]){
   int key;
   // Read the zip 301 from file and add to Zip301Decompressor's key
   while(getline(ifs, line)) {
-      if(line[0] == '*') break;
-      line.pop_back();
-      unsigned pos = line.find(" ");
-      code = line.substr(0,pos);
-      line = line.substr(pos+1);
-      if(line == "space") key = ' ';
-      else if(line ==  "newline") key = 10;
-      else if(line == "tab") key = 9;
-      else if(line == "return") key =13;
-      else key = line[0];
-      decompressor.add_to_key(code, key);
-      //cout << code<< " " << line << endl;
+    if(line[0] == '*') break;
+    line.pop_back();
+    unsigned pos = line.find(" ");
+    code = line.substr(0,pos);
+    line = line.substr(pos+1);
+    if(line == "space") key = ' ';
+    else if(line ==  "newline") key = 10;
+    else if(line == "tab") key = 9;
+    else if(line == "return") key =13;
+    else key = line[0];
+    decompressor.add_to_key(code, key);
+    //cout << code<< " " << line << endl;
   }
   //Retrieve the bit length at the end of the zip301 key
   getline(ifs, line);
@@ -106,8 +107,8 @@ int main(int argc, char *argv[]){
   ifs.close();
   //build a binary string
   string binary_string;
-  for(int i = 0; i < encoded_data.length(); ++i){
-      binary_string += bitset<8>(encoded_data[i]).to_string();
+  for(unsigned char c: encoded_data){
+    binary_string += bitset<8>(c).to_string();
   }
   //decode the binary_string
   string decoded =  decompressor.decode(binary_string.substr(0, binary_length)) ;
