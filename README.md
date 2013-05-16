@@ -1,8 +1,8 @@
 UglyHuffling
 ============
 
-A simple and ugly (read don't judge me) Huffman compress and decompress written in c++ for the final project
-my CS301 algorithms and complexity class.
+A simple and ugly (read don't judge me) Huffman compression and decompression written in c++ for the final project
+of my CS301 algorithms and complexity class.
 
 THE ZIP301 FILE FORMAT
 ======================
